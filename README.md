@@ -19,6 +19,58 @@ If you are building a Discord bot or application that requires users to pair ser
 
 `push-receiver` acts as a mock Android device to catch the pairing notifications and extract the tokens, which you can then pass into `rustplus`.
 
+### Dynamic Pairing Example
+
+```rust
+use push_receiver::PushReceiver;
+use rustplus::RustPlusClient;
+use serde_json::Value;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // 1. Connect to FCM using the Rust+ Sender ID
+    let (_receiver, mut rx) = PushReceiver::builder("1056586548777")
+        .connect()
+        .await?;
+
+    println!("Waiting for pairing notification (Click 'Pair' in Rust)...");
+
+    // 2. Listen for incoming push messages
+    while let Some(msg) = rx.recv().await {
+        for item in msg.app_data {
+            let val = item.value.trim();
+            if !val.starts_with('{') { continue; }
+
+            // 3. Parse the pairing payload
+            if let Ok(body) = serde_json::from_str::<Value>(val) {
+                if let (Some(ip), Some(port), Some(token), Some(steam_id)) = (
+                    body["ip"].as_str(),
+                    body["port"].as_u64(),
+                    body["playerToken"].as_i64(),
+                    body["playerId"].as_u64(),
+                ) {
+                    println!("Received pairing info for {}:{}", ip, port);
+
+                    // 4. Use the extracted token to connect the RustPlusClient
+                    let mut rp_client = RustPlusClient::new(
+                        ip, port as u16, steam_id, token as i32, false
+                    );
+                    
+                    rp_client.connect().await?;
+                    
+                    let info = rp_client.get_info().await?;
+                    if let Some(resp) = info.response {
+                        println!("Connected successfully to: {:?}", resp.get_info);
+                    }
+                    return Ok(());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+```
+
 ## Usage
 
 ```rust
