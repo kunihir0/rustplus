@@ -1,4 +1,4 @@
-use crate::proto::{AppMarker, AppBroadcast};
+use crate::proto::{AppBroadcast, AppMarker};
 use std::time::{Duration, Instant};
 
 /// The single output type of the whole monitoring system.

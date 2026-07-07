@@ -9,7 +9,7 @@ const VERSION_URL: &str = "https://companion-rust.facepunch.com/api/version";
 static CACHE: OnceLock<Mutex<(i64, Instant)>> = OnceLock::new();
 
 /// How long to reuse a cached value before re-fetching.
-const CACHE_TTL: std::time::Duration = std::time::Duration::from_secs(600);
+const CACHE_TTL: std::time::Duration = std::time::Duration::from_mins(10);
 
 /// Fallback value used when the API is unreachable.
 const FALLBACK: i64 = 9_999_999_999_999;
@@ -21,7 +21,7 @@ const FALLBACK: i64 = 9_999_999_999_999;
 ///
 /// Returns `Error::Http` if the request fails *and* no cached value exists.
 pub(crate) async fn get_proxy_version() -> Result<i64> {
-    let cache = CACHE.get_or_init(|| Mutex::new((0, Instant::now() - CACHE_TTL)));
+    let cache = CACHE.get_or_init(|| Mutex::new((0, Instant::now().checked_sub(CACHE_TTL).unwrap_or_else(Instant::now))));
     let mut guard = cache.lock().await;
 
     if guard.0 != 0 && guard.1.elapsed() < CACHE_TTL {
