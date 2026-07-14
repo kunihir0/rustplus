@@ -168,7 +168,7 @@ impl RustPlusClient {
                     }
                     Ok(_) => {} // Ignore other message types
                     Err(e) => {
-                        error!("WebSocket error: {}", e);
+                        warn!("WebSocket connection dropped: {}", e);
                         break;
                     }
                 }

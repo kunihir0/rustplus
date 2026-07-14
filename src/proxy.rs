@@ -21,7 +21,14 @@ const FALLBACK: i64 = 9_999_999_999_999;
 ///
 /// Returns `Error::Http` if the request fails *and* no cached value exists.
 pub(crate) async fn get_proxy_version() -> Result<i64> {
-    let cache = CACHE.get_or_init(|| Mutex::new((0, Instant::now().checked_sub(CACHE_TTL).unwrap_or_else(Instant::now))));
+    let cache = CACHE.get_or_init(|| {
+        Mutex::new((
+            0,
+            Instant::now()
+                .checked_sub(CACHE_TTL)
+                .unwrap_or_else(Instant::now),
+        ))
+    });
     let mut guard = cache.lock().await;
 
     if guard.0 != 0 && guard.1.elapsed() < CACHE_TTL {
