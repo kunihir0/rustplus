@@ -1,6 +1,6 @@
 [package]
 name = "rustplus"
-version = "0.1.0"
+version = "0.2.3"
 edition = "2024"
 description = "Rust+ protocol client"
 license = "MIT OR Apache-2.0"
@@ -21,7 +21,7 @@ prost.workspace = true
 reqwest.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
-image = "0.25.10"
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png"] }
 http.workspace = true
 
 [build-dependencies]
